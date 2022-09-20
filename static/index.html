@@ -14,6 +14,12 @@
         socket.onmessage = (event) => {
             console.log(event.data);
         }
+
+        const test = async () => {
+            const socket = new WebSocket("ws://127.0.0.1:8080/ws");
+
+            socket.disconnect();
+        }
     </script>
 </body>
 </html>

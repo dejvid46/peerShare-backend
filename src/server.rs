@@ -17,14 +17,14 @@ pub struct Message(pub String);
 #[rtype(usize)]
 pub struct Connect {
     pub addr: Recipient<Message>,
-    pub room: String
+    pub room: usize
 }
 
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct Disconnect {
     pub id: usize,
-    pub room: String
+    pub room: usize
 }
 
 #[derive(Message)]
@@ -35,13 +35,13 @@ pub struct ClientMessage {
     /// Peer message
     pub msg: String,
     /// Room name
-    pub room: String,
+    pub room: usize,
 }
 
 pub struct ListRooms;
 
 impl actix::Message for ListRooms {
-    type Result = Vec<String>;
+    type Result = Vec<usize>;
 }
 
 #[derive(Message)]
@@ -51,15 +51,15 @@ pub struct Join {
     pub id: usize,
 
     /// Room name
-    pub name: String,
+    pub name: usize,
 
-    pub room: String
+    pub room: usize
 }
 
 #[derive(Debug)]
 pub struct ChatServer {
     sessions: HashMap<usize, Recipient<Message>>,
-    rooms: HashMap<String, HashSet<usize>>,
+    rooms: HashMap<usize, HashSet<usize>>,
     pub queue: Data<Mutex<Queue>>,
     rng: ThreadRng
 }
@@ -78,7 +78,7 @@ impl ChatServer {
 }
 
 impl ChatServer {
-    fn send_message(&self, room: &str, message: &str, skip_id: usize) {
+    fn send_message(&self, room: &usize, message: &str, skip_id: usize) {
         if let Some(sessions) = self.rooms.get(room) {
             for id in sessions {
                 if *id != skip_id {
@@ -132,7 +132,11 @@ impl Handler<Disconnect> for ChatServer {
             // remove session from room
             if let Some(sessions) = self.rooms.get_mut(&room) {
                 sessions.remove(&id);
-                
+
+                let mut guard = self.queue.lock().unwrap();
+                let queue = &mut *guard;
+                queue.refund(&room);
+
                 if sessions.is_empty() {
                     self.rooms.remove(&room);
                 }
@@ -174,6 +178,10 @@ impl Handler<Join> for ChatServer {
         // remove session from room
         if let Some(sessions) = self.rooms.get_mut(&room) {
             sessions.remove(&id);
+
+            let mut guard = self.queue.lock().unwrap();
+            let queue = &mut *guard;
+            queue.refund(&room);
 
             if sessions.is_empty() {
                 self.rooms.remove(&room);

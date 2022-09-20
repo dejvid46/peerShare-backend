@@ -21,7 +21,7 @@ pub struct WsChatSession {
     pub hb: Instant,
 
     /// joined room
-    pub room: String,
+    pub room: usize,
 
     /// peer name
     pub name: Option<String>,
@@ -140,7 +140,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                                     match res {
                                         Ok(rooms) => {
                                             for room in rooms {
-                                                ctx.text(room);
+                                                ctx.text(room.to_string());
                                             }
                                         }
                                         _ => println!("Something is wrong"),
@@ -155,14 +155,21 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                         "/join" => {
                             if v.len() == 2 {
                                 let old = self.room.clone();
-                                self.room = v[1].to_owned();
-                                self.addr.do_send(server::Join {
-                                    id: self.id,
-                                    name: self.room.clone(),
-                                    room: old
-                                });
+                                if let Some(name) = v[1].parse::<usize>().ok() {
+                                    self.room = name;
 
-                                ctx.text("joined");
+                                    self.addr.do_send(server::Join {
+                                        id: self.id,
+                                        name: self.room.clone(),
+                                        room: old
+                                    });
+    
+                                    ctx.text("joined");
+                                } else {
+                                    ctx.text("!!! room name must be integer");
+                                }
+                                
+                                
                             } else {
                                 ctx.text("!!! room name is required");
                             }

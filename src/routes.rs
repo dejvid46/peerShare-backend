@@ -30,15 +30,13 @@ pub async fn chat_route(
     let mut guard = queue.lock().unwrap();
     let queue = &mut *guard;
     let room = queue.reserve();
-    println!("{:?}", room);
-    let room = Some("kuku".to_string());
     match room {
         Some(x) => 
             ws::start(
                 session::WsChatSession {
                     id: 0,
                     hb: Instant::now(),
-                    room: x.to_string(),
+                    room: x.to_owned(),
                     name: None,
                     addr: srv.get_ref().clone(),
                 },

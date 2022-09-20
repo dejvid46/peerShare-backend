@@ -1,7 +1,7 @@
 #[derive(Debug)]
 pub struct Queue{
     empty_spaces: Vec<usize>,
-    pointer: usize
+    pub pointer: usize
 }
 
 impl Queue {
@@ -22,13 +22,16 @@ impl Queue {
             self.pointer += 1;
         }
 
+        println!("Pointer is: {:?}, room id is {:?}", self.pointer, res);
+
         res
     }
 }
 
 impl Queue {
-    pub fn refund(&mut self, id: usize) {
+    pub fn refund(&mut self, id: &usize) {
         self.pointer -= 1;
-        self.empty_spaces[self.pointer] = id;
+        self.empty_spaces[self.pointer] = id.to_owned();
+        println!("Pointer is: {:?}, room return id is {:?}", self.pointer, id);
     }
 }
