@@ -152,26 +152,93 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                             // so actor wont receive any new messages until it get list
                             // of rooms back
                         }
+                        "/invite" => {
+                            if v.len() == 2 {
+                                if let Some(name) = v[1].parse::<usize>().ok() {
+                                    self.addr
+                                    .send(server::Invite { id: self.id, name: name.clone() })
+                                    .into_actor(self)
+                                    .then(|res, _, ctx| {
+                                        match res {
+                                            Ok(ivite_res) => {
+                                                match ivite_res {
+                                                    server::InviteResult::Asked => ctx.text("asked"),
+                                                    server::InviteResult::RoomDontExist => ctx.text("room does not exist")
+                                                }
+                                            }
+                                            _ => println!("Something is wrong"),
+                                        }
+                                        fut::ready(())
+                                    })
+                                    .wait(ctx)
+                                } else {
+                                    ctx.text("!!! room name required ");
+                                }
+                            } else {
+                                ctx.text("!!! syntax error");
+                            }
+                        }
                         "/join" => {
                             if v.len() == 2 {
-                                let old = self.room.clone();
-                                if let Some(name) = v[1].parse::<usize>().ok() {
-                                    self.room = name;
+                                let room_data: Vec<&str> = v[1].splitn(2, ' ').collect();
+                                if let Some(name) = room_data[0].parse::<usize>().ok() {
+                                    if let Some(key) = room_data[1].parse::<usize>().ok() {
 
-                                    self.addr.do_send(server::Join {
-                                        id: self.id,
-                                        name: self.room.clone(),
-                                        room: old
-                                    });
-    
-                                    ctx.text("joined");
+                                        let old = self.room.clone();
+                                        self.room = name;
+
+                                        self.addr.send(server::Join {
+                                            id: self.id,
+                                            name: self.room.clone(),
+                                            key,
+                                            room: old,
+                                        })
+                                        .into_actor(self)
+                                        .then(|res, _, ctx| {
+                                            match res {
+                                                Ok(join_res) => {
+                                                    match join_res {
+                                                        server::JoinResult::Joined => ctx.text("joined"),
+                                                        server::JoinResult::RoomDontExist => ctx.text("room does not exist"),
+                                                        server::JoinResult::BadKey => ctx.text("bad key")
+                                                    }
+                                                    
+                                                }
+                                                _ => ctx.text("somethig go wrong"),
+                                            }
+                                            fut::ready(())
+                                        })
+                                        .wait(ctx)
+                                    } else {
+                                        ctx.text("!!! room key must be integer");
+                                    }
                                 } else {
                                     ctx.text("!!! room name must be integer");
                                 }
                                 
-                                
                             } else {
-                                ctx.text("!!! room name is required");
+                                ctx.text("!!! room name and key is required");
+                            }
+                        }
+                        "/room" => {
+                            if v.len() == 1 {
+                                self.addr.send(server::Room{ name: self.room.clone() })
+                                .into_actor(self)
+                                .then(|res, session, ctx| {
+                                    match res {
+                                        Ok(key) => {
+                                            match key {
+                                                Some(x) => ctx.text(format!("{:?} {:?}", session.room, x)),
+                                                None => ctx.text("cant get key"),
+                                            }
+                                        }
+                                        _ => ctx.text("somethig go wrong"),
+                                    }
+                                    fut::ready(())
+                                })
+                                .wait(ctx)
+                            } else {
+                                ctx.text("!!! syntax error");
                             }
                         }
                         "/name" => {

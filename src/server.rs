@@ -44,8 +44,38 @@ impl actix::Message for ListRooms {
     type Result = Vec<usize>;
 }
 
+pub struct Room {
+    pub name: usize
+}
+
+impl actix::Message for Room {
+    type Result = Option<usize>;
+}
+
 #[derive(Message)]
-#[rtype(result = "()")]
+#[rtype(InviteResult)]
+pub enum InviteResult {
+    Asked,
+    RoomDontExist
+}
+
+pub struct Invite {
+    pub id: usize,
+    pub name: usize
+}
+
+impl actix::Message for Invite {
+    type Result = InviteResult;
+}
+
+#[derive(Message)]
+#[rtype(JoinResult)]
+pub enum JoinResult {
+    Joined,
+    RoomDontExist,
+    BadKey
+}
+
 pub struct Join {
     /// Client ID
     pub id: usize,
@@ -53,7 +83,13 @@ pub struct Join {
     /// Room name
     pub name: usize,
 
+    pub key: usize,
+
     pub room: usize
+}
+
+impl actix::Message for Join {
+    type Result = JoinResult;
 }
 
 #[derive(Debug)]
@@ -61,6 +97,7 @@ pub struct ChatServer {
     sessions: HashMap<usize, Recipient<Message>>,
     rooms: HashMap<usize, HashSet<usize>>,
     pub queue: Data<Mutex<Queue>>,
+    keys: HashMap<usize, usize>,
     rng: ThreadRng
 }
 
@@ -72,6 +109,7 @@ impl ChatServer {
             sessions: HashMap::new(),
             rooms,
             queue,
+            keys: HashMap::new(),
             rng: rand::thread_rng()
         }
     }
@@ -113,6 +151,8 @@ impl Handler<Connect> for ChatServer {
             .or_insert_with(HashSet::new)
             .insert(id);
 
+        self.keys.insert(msg.room, self.rng.gen());
+
         // send id back
         id
     }
@@ -133,12 +173,13 @@ impl Handler<Disconnect> for ChatServer {
             if let Some(sessions) = self.rooms.get_mut(&room) {
                 sessions.remove(&id);
 
-                let mut guard = self.queue.lock().unwrap();
-                let queue = &mut *guard;
-                queue.refund(&room);
-
                 if sessions.is_empty() {
+                    let mut guard = self.queue.lock().unwrap();
+                    let queue = &mut *guard;
+                    queue.refund(&room);
+
                     self.rooms.remove(&room);
+                    self.keys.remove(&room);
                 }
             }
         }
@@ -169,22 +210,51 @@ impl Handler<ListRooms> for ChatServer {
     }
 }
 
-impl Handler<Join> for ChatServer {
-    type Result = ();
+impl Handler<Room> for ChatServer {
+    type Result = MessageResult<Room>;
+    
+    fn handle(&mut self, room: Room, _: &mut Self::Context) -> Self::Result {
+        MessageResult(self.keys.get(&room.name).map(|x| x.clone()))
+    }
+}
 
-    fn handle(&mut self, msg: Join, _: &mut Context<Self>) {
-        let Join { id, name, room } = msg;
+impl Handler<Invite> for ChatServer {
+    type Result = MessageResult<Invite>;
+
+    fn handle(&mut self, room: Invite, _: &mut Self::Context) -> Self::Result {
+        if !self.rooms.contains_key(&room.name) { return MessageResult(InviteResult::RoomDontExist) }
+
+        self.send_message(&room.name, &format!("/invite {:?} {:?}", &room.name, &room.id), 0);
+
+        MessageResult(InviteResult::Asked)
+    }
+}
+
+impl Handler<Join> for ChatServer {
+    type Result = MessageResult<Join>;
+
+    fn handle(&mut self, msg: Join, _: &mut Context<Self>) -> Self::Result {
+        let Join { id, name, key, room } = msg;
+
+        if !self.rooms.contains_key(&name) { return MessageResult(JoinResult::RoomDontExist) }
+
+        if let Some(room_key) = self.keys.get(&name) {
+            if room_key != &key { return MessageResult(JoinResult::BadKey) };
+        } else {
+            return MessageResult(JoinResult::BadKey);
+        }
 
         // remove session from room
         if let Some(sessions) = self.rooms.get_mut(&room) {
             sessions.remove(&id);
 
-            let mut guard = self.queue.lock().unwrap();
-            let queue = &mut *guard;
-            queue.refund(&room);
-
             if sessions.is_empty() {
+                let mut guard = self.queue.lock().unwrap();
+                let queue = &mut *guard;
+                queue.refund(&room);
+
                 self.rooms.remove(&room);
+                self.keys.remove(&room);
             }
         }
         // send message to other users
@@ -196,5 +266,7 @@ impl Handler<Join> for ChatServer {
             .insert(id);
 
         self.send_message(&name, "Someone connected", id);
+
+        MessageResult(JoinResult::Joined)
     }
 }
