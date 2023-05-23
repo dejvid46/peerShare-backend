@@ -26,6 +26,8 @@ async fn main() -> std::io::Result<()> {
             .app_data(Data::clone(&queue))
             .app_data(web::Data::new(server.clone()))
             .service(web::resource("/").to(routes::index))
+            .service(web::resource("/test").to(routes::test))
+            .service(web::resource("/send").to(routes::send))
             .route("/ws", web::get().to(routes::chat_route))
             .service(Files::new("/static", "./static"))
             .wrap(Logger::default())

@@ -1,7 +1,7 @@
 #[derive(Debug)]
 pub struct Queue{
     empty_spaces: Vec<usize>,
-    pub pointer: usize
+    pointer: usize
 }
 
 impl Queue {

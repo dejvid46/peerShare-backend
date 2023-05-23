@@ -61,11 +61,53 @@ pub enum InviteResult {
 
 pub struct Invite {
     pub id: usize,
-    pub name: usize
+    pub room: usize,
+    pub from_room: usize
 }
 
 impl actix::Message for Invite {
     type Result = InviteResult;
+}
+
+pub struct Members{
+    pub room: usize,
+}
+
+impl actix::Message for Members {
+    type Result = Vec<usize>;
+}
+
+pub struct Direct{
+    pub room: usize,
+    pub id_to: usize,
+    pub id_from: usize,
+    pub mess: String
+}
+
+pub enum DirectResult {
+    Send,
+    IdDontExist
+}
+
+impl actix::Message for Direct {
+    type Result = DirectResult;
+}
+
+#[derive(Message)]
+#[rtype(InviteResult)]
+pub enum SendRoomKeyResult {
+    Send,
+    RoomDontExist
+}
+
+pub struct SendRoomKey {
+    pub room: usize,
+    pub from_room: usize,
+    pub id: usize
+}
+
+impl actix::Message for SendRoomKey {
+    type Result = SendRoomKeyResult;
 }
 
 #[derive(Message)]
@@ -96,7 +138,7 @@ impl actix::Message for Join {
 pub struct ChatServer {
     sessions: HashMap<usize, Recipient<Message>>,
     rooms: HashMap<usize, HashSet<usize>>,
-    pub queue: Data<Mutex<Queue>>,
+    queue: Data<Mutex<Queue>>,
     keys: HashMap<usize, usize>,
     rng: ThreadRng
 }
@@ -129,6 +171,20 @@ impl ChatServer {
     }
 }
 
+impl ChatServer {
+    fn send_message_to_id(&self, room: &usize, message: &str, id: usize) {
+        if let Some(sessions) = self.rooms.get(room) {
+            for user_id in sessions {
+                if *user_id == id {
+                    if let Some(addr) = self.sessions.get(user_id) {
+                        addr.do_send(Message(message.to_owned()));
+                    }
+                }
+            }
+        }
+    }
+}
+
 impl Actor for ChatServer {
     type Context = Context<Self>;
 }
@@ -137,7 +193,6 @@ impl Handler<Connect> for ChatServer {
     type Result = usize;
 
     fn handle(&mut self, msg: Connect, _: &mut Context<Self>) -> Self::Result {
-        println!("Someone joined");
 
         self.rooms.insert(msg.room.to_owned(), HashSet::new());
 
@@ -164,7 +219,6 @@ impl Handler<Disconnect> for ChatServer {
 
     fn handle(&mut self, msg: Disconnect, _: &mut Context<Self>) {
         let Disconnect { id, room } = msg;
-        println!("Someone disconnected");
 
         // remove address
         if self.sessions.remove(&id).is_some() {
@@ -184,7 +238,7 @@ impl Handler<Disconnect> for ChatServer {
             }
         }
         // send message to other users
-        self.send_message(&room, "Someone disconnected", 0);
+        self.send_message(&room, &format!("/disconnected {}", id), 0);
     }
 }
 
@@ -210,6 +264,47 @@ impl Handler<ListRooms> for ChatServer {
     }
 }
 
+impl Handler<Members> for ChatServer {
+    type Result = MessageResult<Members>;
+
+    fn handle(&mut self, mem : Members, _: &mut Context<Self>) -> Self::Result {
+        let mut ids_vec = Vec::new();
+
+        if let Some(ids) = self.rooms.get(&mem.room) {
+            for id in ids {
+                ids_vec.push(id.to_owned())
+            };
+        }
+
+        MessageResult(ids_vec)
+
+    }
+}
+
+impl Handler<Direct> for ChatServer {
+    type Result = MessageResult<Direct>;
+
+    fn handle(&mut self, mess : Direct, _: &mut Context<Self>) -> Self::Result {
+        let mut idisinroom = false;
+        
+        if let Some(ids) = self.rooms.get(&mess.room) {
+            for id in ids {
+                if id == &mess.id_to{
+                    idisinroom = true;
+                }
+            };
+        }
+
+        if idisinroom {
+            self.send_message_to_id(&mess.room, &format!("/direct_message {} {}", mess.id_from, mess.mess), mess.id_to);
+            return MessageResult(DirectResult::Send);
+        }
+
+        MessageResult(DirectResult::IdDontExist)
+
+    }
+}
+
 impl Handler<Room> for ChatServer {
     type Result = MessageResult<Room>;
     
@@ -221,12 +316,25 @@ impl Handler<Room> for ChatServer {
 impl Handler<Invite> for ChatServer {
     type Result = MessageResult<Invite>;
 
-    fn handle(&mut self, room: Invite, _: &mut Self::Context) -> Self::Result {
-        if !self.rooms.contains_key(&room.name) { return MessageResult(InviteResult::RoomDontExist) }
+    fn handle(&mut self, data: Invite, _: &mut Self::Context) -> Self::Result {
+        if !self.rooms.contains_key(&data.room) { return MessageResult(InviteResult::RoomDontExist) }
 
-        self.send_message(&room.name, &format!("/invite {:?} {:?}", &room.name, &room.id), 0);
+        self.send_message(&data.room, &format!("/invite {} {}", &data.from_room, &data.id), 0);
 
         MessageResult(InviteResult::Asked)
+    }
+}
+
+impl Handler<SendRoomKey> for ChatServer {
+    type Result = MessageResult<SendRoomKey>;
+
+    fn handle(&mut self, data: SendRoomKey, _: &mut Self::Context) -> Self::Result {
+        if !self.rooms.contains_key(&data.room) { return MessageResult(SendRoomKeyResult::RoomDontExist) }
+        if !self.keys.contains_key(&data.room) { return MessageResult(SendRoomKeyResult::RoomDontExist) }
+
+        self.send_message_to_id(&data.room, &format!("/send {} {:?}", &data.from_room, self.keys.get(&data.from_room)), data.id);
+
+        MessageResult(SendRoomKeyResult::Send)
     }
 }
 
@@ -258,14 +366,14 @@ impl Handler<Join> for ChatServer {
             }
         }
         // send message to other users
-        self.send_message(&room, "Someone disconnected", 0);
+        self.send_message(&room, &format!("/disconnected {}", id), 0);
 
         self.rooms
             .entry(name.clone())
             .or_insert_with(HashSet::new)
             .insert(id);
 
-        self.send_message(&name, "Someone connected", id);
+        self.send_message(&name, &format!("/connected {}", id), id);
 
         MessageResult(JoinResult::Joined)
     }

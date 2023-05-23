@@ -20,6 +20,14 @@ pub async fn index() -> impl Responder {
     NamedFile::open_async("./static/index.html").await.unwrap()
 }
 
+pub async fn test() -> impl Responder {
+    NamedFile::open_async("./static/test.html").await.unwrap()
+}
+
+pub async fn send() -> impl Responder {
+    NamedFile::open_async("./static/send.html").await.unwrap()
+}
+
 /// Entry point for our websocket route
 pub async fn chat_route(
     req: HttpRequest,
@@ -37,7 +45,6 @@ pub async fn chat_route(
                     id: 0,
                     hb: Instant::now(),
                     room: x.to_owned(),
-                    name: None,
                     addr: srv.get_ref().clone(),
                 },
                 &req,
