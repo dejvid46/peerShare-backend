@@ -306,7 +306,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                                 ctx.text("!!! syntax error");
                                 return;
                             }
-                            ctx.text(self.id.to_string())
+                            ctx.text(format!("/id {:?}", self.id))
                         }
                         "/members" => {
                             if v.len() != 1 {
@@ -318,7 +318,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                             .then(|res, _, ctx| {
                                 match res {
                                     Ok(key) => {
-                                        ctx.text(format!("{:?}", key));
+                                        ctx.text(format!("/members {:?}", key));
                                     }
                                     _ => ctx.text("!!! somethig go wrong"),
                                 }

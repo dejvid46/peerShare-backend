@@ -1,21 +1,17 @@
 use std::sync::Mutex;
 
 use actix::*;
-use actix_files::{Files};
-use actix_web::{
-    middleware::Logger, web, App, HttpServer,
-    web::Data
-};
+use actix_files::Files;
+use actix_web::{middleware::Logger, web, web::Data, App, HttpServer};
 
-mod server;
-mod session;
 mod queue;
 mod reserr;
 mod routes;
+mod server;
+mod session;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-
     let queue = Data::new(Mutex::new(queue::Queue::new(10000)));
 
     // start chat server actor
