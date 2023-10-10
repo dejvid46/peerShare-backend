@@ -47,7 +47,13 @@ pub async fn chat_route(
             &req,
             stream,
         )
-        .map_err(|_| ResErr::BadClientData("something wrong")),
+        .map_err(|_| {
+            {
+                let mut guard = queue.lock().unwrap();
+                guard.refund(&x);
+            }
+            ResErr::BadClientData("something wrong")
+        }),
         None => Err(ResErr::BadClientData("full queue")),
     }
 }
