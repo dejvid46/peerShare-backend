@@ -102,7 +102,10 @@ impl Actor for WsChatSession {
                 match res {
                     Ok(res) => act.id = res,
                     // something is wrong with chat server
-                    _ => ctx.stop(),
+                    _ => {
+                        act.addr.do_send(server::Disconnect { id: act.id, room: act.room.clone() });
+                        ctx.stop()
+                    },
                 }
                 fut::ready(())
             })
@@ -129,6 +132,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         let msg = match msg {
             Err(_) => {
+                self.addr.do_send(server::Disconnect { id: self.id, room: self.room.clone() });
                 ctx.stop();
                 return;
             }
@@ -373,9 +377,11 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
             ws::Message::Binary(_) => println!("Unexpected binary"),
             ws::Message::Close(reason) => {
                 ctx.close(reason);
+                self.addr.do_send(server::Disconnect { id: self.id, room: self.room.clone() });
                 ctx.stop();
             }
             ws::Message::Continuation(_) => {
+                self.addr.do_send(server::Disconnect { id: self.id, room: self.room.clone() });
                 ctx.stop();
             }
             ws::Message::Nop => (),
