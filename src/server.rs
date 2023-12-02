@@ -111,16 +111,14 @@ impl actix::Message for SendRoomKey {
 #[derive(Message)]
 #[rtype(JoinResult)]
 pub enum JoinResult {
-    Joined,
+    Joined(usize),
     RoomDontExist,
     BadKey,
 }
 
 pub struct Join {
-    /// Client ID
     pub id: usize,
 
-    /// Room name
     pub name: usize,
 
     pub key: usize,
@@ -379,16 +377,12 @@ impl Handler<Join> for ChatServer {
             room,
         } = msg;
 
-        if !self.rooms.contains_key(&name) {
-            return MessageResult(JoinResult::RoomDontExist);
-        }
-
         if let Some(room_key) = self.keys.get(&name) {
             if room_key != &key {
                 return MessageResult(JoinResult::BadKey);
             };
         } else {
-            return MessageResult(JoinResult::BadKey);
+            return MessageResult(JoinResult::RoomDontExist);
         }
 
         // remove session from room
@@ -431,6 +425,6 @@ impl Handler<Join> for ChatServer {
 
         self.send_message(&name, &format!("/members {:?}", ids_vec), id);
 
-        MessageResult(JoinResult::Joined)
+        MessageResult(JoinResult::Joined(name))
     }
 }

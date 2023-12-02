@@ -113,8 +113,10 @@ impl Actor for WsChatSession {
     }
 
     fn stopping(&mut self, _: &mut Self::Context) -> Running {
-        self.addr.do_send(server::Disconnect { id: self.id, room: self.room.clone() });
         Running::Stop
+    }
+    fn stopped(&mut self, _: &mut Self::Context) {
+        self.addr.do_send(server::Disconnect { id: self.id, room: self.room.clone() });
     }
 }
 
@@ -248,21 +250,21 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                                 if let Some(name) = room_data.get(0).map_or(None, |x| x.parse::<usize>().ok()) {
                                     if let Some(key) = room_data.get(1).map_or(None, |x| x.parse::<usize>().ok()) {
 
-                                        let old = self.room.clone();
-                                        self.room = name;
-
                                         self.addr.send(server::Join {
                                             id: self.id,
-                                            name: self.room.clone(),
+                                            name: name.clone(),
                                             key,
-                                            room: old,
+                                            room: self.room.clone(),
                                         })
                                         .into_actor(self)
-                                        .then(|res, _, ctx| {
+                                        .then(|res, actor, ctx| {
                                             match res {
                                                 Ok(join_res) => {
                                                     match join_res {
-                                                        server::JoinResult::Joined => ctx.text("/joined"),
+                                                        server::JoinResult::Joined(room) => {
+                                                            actor.room = room;
+                                                            ctx.text("/joined");
+                                                        },
                                                         server::JoinResult::RoomDontExist => ctx.text("!!! room does not exist"),
                                                         server::JoinResult::BadKey => ctx.text("!!! bad key")
                                                     }
