@@ -114,6 +114,7 @@ pub enum JoinResult {
     Joined(usize),
     RoomDontExist,
     BadKey,
+    FullRoom
 }
 
 pub struct Join {
@@ -381,6 +382,14 @@ impl Handler<Join> for ChatServer {
             if room_key != &key {
                 return MessageResult(JoinResult::BadKey);
             };
+        } else {
+            return MessageResult(JoinResult::RoomDontExist);
+        }
+
+        if let Some(name ) = self.rooms.get(&name) {
+            if name.len() > 10 {
+                return MessageResult(JoinResult::FullRoom);   
+            }
         } else {
             return MessageResult(JoinResult::RoomDontExist);
         }

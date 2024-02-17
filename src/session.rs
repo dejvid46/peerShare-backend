@@ -266,7 +266,8 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                                                             ctx.text("/joined");
                                                         },
                                                         server::JoinResult::RoomDontExist => ctx.text("!!! room does not exist"),
-                                                        server::JoinResult::BadKey => ctx.text("!!! bad key")
+                                                        server::JoinResult::BadKey => ctx.text("!!! bad key"),
+                                                        server::JoinResult::FullRoom => ctx.text("!!! full room")
                                                     }
                                                     
                                                 }
