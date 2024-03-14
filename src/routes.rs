@@ -2,8 +2,7 @@ use std::sync::Mutex;
 use std::time::Instant;
 
 use actix::*;
-use actix_files::NamedFile;
-use actix_web::{web, HttpRequest, HttpResponse, Responder};
+use actix_web::{web, HttpRequest, HttpResponse};
 
 use actix_web_actors::ws;
 
@@ -11,18 +10,6 @@ use crate::queue;
 use crate::reserr::ResErr;
 use crate::server;
 use crate::session;
-
-pub async fn index() -> impl Responder {
-    NamedFile::open_async("./static/index.html").await.unwrap()
-}
-
-pub async fn test() -> impl Responder {
-    NamedFile::open_async("./static/test.html").await.unwrap()
-}
-
-pub async fn send() -> impl Responder {
-    NamedFile::open_async("./static/send.html").await.unwrap()
-}
 
 /// Entry point for our websocket route
 pub async fn chat_route(

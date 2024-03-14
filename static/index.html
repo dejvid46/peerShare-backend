@@ -1,310 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Document</title>
-</head>
-
-<body>
-  <h1>Haroooo</h1>
-  <script>
-    const ws = new WebSocket("ws://127.0.0.1:8080/ws");
-
-    ws.onmessage = async (event) => {
-      const id = ""
-      if(event.data.split(" ")[0] === "icecandidate"){
-        await localConnection.addIceCandidate(JSON.parse(event.data.slice(13))).catch(error => {
-          console.error('Error adding ICE candidate:', error);
-        });
-      }
-      console.log(event.data);
-    }
-
-    const test = async () => {
-      const socket = new WebSocket("ws://127.0.0.1:8080/ws");
-
-      socket.disconnect();
-    }
-  </script>
-
-  <section>
-    <div>
-      <form id="fileInfo">
-        <input type="file" id="fileInput" name="files" />
-        <input type="text" id="idInput" name="id" />
-      </form>
-      <button disabled id="sendFile">Send</button>
-      <button disabled id="abortButton">Abort</button>
+<html lang="en" class="dark bg-gradient-to-bl from-zinc-900 via-slate-900 to-stone-900 overflow-hidden" style="color-scheme: dark;">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="description" content="Page for peer-to-peer sharing files without registering.">
+		<meta name="viewport" content="width=device-width">
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+		<link rel="canonical" href="peer-share.net">
+		<meta name="generator" content="Astro v2.10.8">
+		<meta name="theme-color" content="#006FEE">
+		<title>PeerShare</title>
+	<link rel="stylesheet" href="/_astro/index.e275babc.css" /></head>
+	<body class="relative container mx-auto max-w-7xl px-6 min-h-[calc(100vh)] flex-grow">
+		
+  <main class="flex flex-col items-center justify-between h-full">
+    <div class="flex fixed w-full h-full left-0 top-0 astro-DWTIXKEZ" style="--size: 250px;">
+  <div class="m-auto sm:w-1/2 sm:pb-[50%] w-full pb-[100%] relative astro-DWTIXKEZ" style="--size: 250px;">
+    <div class="z-[-1] astro-DWTIXKEZ" style="--size: 250px;">
+      <div class="circle astro-DWTIXKEZ" style="animation-delay: -15s; --size: 250px;"></div>
+      <div class="circle astro-DWTIXKEZ" style="animation-delay: -10s; --size: 250px;"></div>
+      <div class="circle astro-DWTIXKEZ" style="animation-delay: -5s; --size: 250px;"></div>
+      <div class="circle astro-DWTIXKEZ" style="animation-delay: 0s; --size: 250px;"></div>
     </div>
+    <style>astro-island,astro-slot,astro-static-slot{display:contents}</style><script>(()=>{var e=async t=>{await(await t())()};(self.Astro||(self.Astro={})).only=e;window.dispatchEvent(new Event("astro:only"));})();;(()=>{var d;{let p={0:t=>u(t),1:t=>l(t),2:t=>new RegExp(t),3:t=>new Date(t),4:t=>new Map(l(t)),5:t=>new Set(l(t)),6:t=>BigInt(t),7:t=>new URL(t),8:t=>new Uint8Array(t),9:t=>new Uint16Array(t),10:t=>new Uint32Array(t)},h=t=>{let[e,n]=t;return e in p?p[e](n):void 0},l=t=>t.map(h),u=t=>typeof t!="object"||t===null?t:Object.fromEntries(Object.entries(t).map(([e,n])=>[e,h(n)]));customElements.get("astro-island")||customElements.define("astro-island",(d=class extends HTMLElement{constructor(){super(...arguments);this.hydrate=async()=>{var i;if(!this.hydrator||!this.isConnected)return;let e=(i=this.parentElement)==null?void 0:i.closest("astro-island[ssr]");if(e){e.addEventListener("astro:hydrate",this.hydrate,{once:!0});return}let n=this.querySelectorAll("astro-slot"),o={},a=this.querySelectorAll("template[data-astro-template]");for(let r of a){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(o[r.getAttribute("data-astro-template")||"default"]=r.innerHTML,r.remove())}for(let r of n){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(o[r.getAttribute("name")||"default"]=r.innerHTML)}let c;try{c=this.hasAttribute("props")?u(JSON.parse(this.getAttribute("props"))):{}}catch(r){let s=this.getAttribute("component-url")||"<unknown>",y=this.getAttribute("component-export");throw y&&(s+=` (export ${y})`),console.error(`[hydrate] Error parsing props for component ${s}`,this.getAttribute("props"),r),r}await this.hydrator(this)(this.Component,c,o,{client:this.getAttribute("client")}),this.removeAttribute("ssr"),this.dispatchEvent(new CustomEvent("astro:hydrate"))}}connectedCallback(){!this.hasAttribute("await-children")||this.firstChild?this.childrenConnectedCallback():new MutationObserver((e,n)=>{n.disconnect(),setTimeout(()=>this.childrenConnectedCallback(),0)}).observe(this,{childList:!0})}async childrenConnectedCallback(){let e=this.getAttribute("before-hydration-url");e&&await import(e),this.start()}start(){let e=JSON.parse(this.getAttribute("opts")),n=this.getAttribute("client");if(Astro[n]===void 0){window.addEventListener(`astro:${n}`,()=>this.start(),{once:!0});return}Astro[n](async()=>{let o=this.getAttribute("renderer-url"),[a,{default:c}]=await Promise.all([import(this.getAttribute("component-url")),o?import(o):()=>()=>{}]),i=this.getAttribute("component-export")||"default";if(!i.includes("."))this.Component=a[i];else{this.Component=a;for(let r of i.split("."))this.Component=this.Component[r]}return this.hydrator=c,this.hydrate},e,this)}attributeChangedCallback(){this.hydrate()}},d.observedAttributes=["props"],d))}})();</script><astro-island uid="1OkJbj" component-url="/_astro/AvatarsCircle.6e27faa3.js" component-export="default" renderer-url="/_astro/client.bcf07339.js" props="{&quot;class&quot;:[0,&quot;astro-DWTIXKEZ&quot;]}" ssr="" client="only" opts="{&quot;name&quot;:&quot;AvatarsCircle&quot;,&quot;value&quot;:&quot;react&quot;}"></astro-island>
+  </div>
+</div>
+    <div class="flex flex-col items-center">
+  <h1 class="sm:text-6xl text-5xl font-bold my-6">PeerShare</h1>
+  <astro-island uid="ZeQ255" component-url="/_astro/Room.31d0740c.js" component-export="default" renderer-url="/_astro/client.bcf07339.js" props="{}" ssr="" client="only" opts="{&quot;name&quot;:&quot;Room&quot;,&quot;value&quot;:&quot;react&quot;}" await-children=""><template data-astro-template>
+    <svg fill="none" viewBox="0 0 24 24" class="stroke-foreground stroke-2 w-12 h-12" astro-icon="share"><path d="M9 12a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM14 6.5 9 10M14 17.5 9 14M19 18.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM19 5.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/></svg>
+  </template></astro-island>
+</div>
+    <astro-island uid="YnOf0" component-url="/_astro/ChatSendMess.a566d2c4.js" component-export="default" renderer-url="/_astro/client.bcf07339.js" props="{}" ssr="" client="only" opts="{&quot;name&quot;:&quot;ChatSendMess&quot;,&quot;value&quot;:&quot;react&quot;}"></astro-island>
+    <div class="fixed bottom-0 gap-4 flex flex-col mx-2">
+    
+      <astro-island uid="Z1lhFX1" component-url="/_astro/FullQueue.b7336f80.js" component-export="default" renderer-url="/_astro/client.bcf07339.js" props="{}" ssr="" client="only" opts="{&quot;name&quot;:&quot;FullQueue&quot;,&quot;value&quot;:&quot;react&quot;}"></astro-island>
+      <astro-island uid="Z21am0" component-url="/_astro/NotificationContainer.c70b8a13.js" component-export="default" renderer-url="/_astro/client.bcf07339.js" props="{}" ssr="" client="only" opts="{&quot;name&quot;:&quot;NotificationContainer&quot;,&quot;value&quot;:&quot;react&quot;}"></astro-island>
+      <div class="block lg:hidden mb-8">
+        <astro-island uid="1fdq9w" component-url="/_astro/SendMess.d326e4fe.js" component-export="default" renderer-url="/_astro/client.bcf07339.js" props="{}" ssr="" client="only" opts="{&quot;name&quot;:&quot;SendMess&quot;,&quot;value&quot;:&quot;react&quot;}"></astro-island>
+      </div>
+    
+</div>
+  </main>
 
-    <div class="progress">
-      <div class="label">Send progress:</div>
-      <progress id="sendProgress" max="0" value="0"></progress>
-    </div>
-
-    <div class="progress">
-      <div class="label">Receive progress:</div>
-      <progress id="receiveProgress" max="0" value="0"></progress>
-    </div>
-
-    <div id="bitrate"></div>
-    <a id="download"></a>
-    <span id="status"></span>
-  </section>
-
-  <script></script>
-
-  <script>
-    let localConnection;
-    let sendChannel;
-    let receiveChannel;
-    let fileReader;
-    const bitrateDiv = document.querySelector('div#bitrate');
-    const fileInput = document.querySelector('input#fileInput');
-    const abortButton = document.querySelector('button#abortButton');
-    const downloadAnchor = document.querySelector('a#download');
-    const sendProgress = document.querySelector('progress#sendProgress');
-    const receiveProgress = document.querySelector('progress#receiveProgress');
-    const statusMessage = document.querySelector('span#status');
-    const sendFileButton = document.querySelector('button#sendFile');
-
-    let receiveBuffer = [];
-    let receivedSize = 0;
-
-    let bytesPrev = 0;
-    let timestampPrev = 0;
-    let timestampStart;
-    let statsInterval = null;
-    let bitrateMax = 0;
-
-    abortButton.disabled = false;
-    sendFileButton.disabled = true;
-    localConnection = new RTCPeerConnection();
-
-    sendChannel = localConnection.createDataChannel('sendDataChannel');
-    sendChannel.binaryType = 'arraybuffer';
-
-    sendChannel.addEventListener('open', onSendChannelStateChange);
-    sendChannel.addEventListener('close', onSendChannelStateChange);
-    sendChannel.addEventListener('error', onError);
-
-    localConnection.addEventListener('icecandidate', async event => {
-      if (event.candidate !== null) {
-        ws.send("icecandidate " + JSON.stringify(event.candidate))
-      }
-    });
-
-    sendFileButton.addEventListener('click', () => createConnection());
-    fileInput.addEventListener('change', handleFileInputChange, false);
-    abortButton.addEventListener('click', () => {
-      if (fileReader && fileReader.readyState === 1) {
-        fileReader.abort();
-      }
-    });
-
-    async function handleFileInputChange() {
-      const file = fileInput.files[0];
-      if (!file) {
-        console.log('No file chosen');
-      } else {
-        sendFileButton.disabled = false;
-      }
-    }
-
-
-    async function createConnection() {
-
-      try {
-        // func for creating offer
-        const id = document.querySelector('input#idInput').value;
-        const offer = await localConnection.createOffer();
-        await gotLocalDescription(offer, id);
-      } catch (e) {
-        console.log('Failed to create session description: ', e);
-      }
-
-      fileInput.disabled = true;
-    }
-
-    function sendData() {
-      const file = fileInput.files[0];
-      console.log(`File is ${[file.name, file.size, file.type, file.lastModified].join(' ')}`);
-
-      // Handle 0 size files.
-      statusMessage.textContent = '';
-      downloadAnchor.textContent = '';
-      if (file.size === 0) {
-        bitrateDiv.innerHTML = '';
-        statusMessage.textContent = 'File is empty, please select a non-empty file';
-        closeDataChannels();
-        return;
-      }
-      sendProgress.max = file.size;
-      receiveProgress.max = file.size;
-      const chunkSize = 16384;
-      fileReader = new FileReader();
-      let offset = 0;
-      fileReader.addEventListener('error', error => console.error('Error reading file:', error));
-      fileReader.addEventListener('abort', event => console.log('File reading aborted:', event));
-      fileReader.addEventListener('load', e => {
-        console.log('FileRead.onload ', e);
-        sendChannel.send(e.target.result);
-        offset += e.target.result.byteLength;
-        sendProgress.value = offset;
-        if (offset < file.size) {
-          readSlice(offset);
-        }
-      });
-      const readSlice = o => {
-        console.log('readSlice ', o);
-        const slice = file.slice(offset, o + chunkSize);
-        fileReader.readAsArrayBuffer(slice);
-      };
-      readSlice(0);
-    }
-
-    // function closeDataChannels() {
-    //   sendChannel.close();
-    //   sendChannel = null;
-    //   if (receiveChannel) {
-    //     receiveChannel.close();
-    //     receiveChannel = null;
-    //   }
-    //   localConnection.close();
-    //   localConnection = null;
-
-    //   // re-enable the file select
-    //   fileInput.disabled = false;
-    //   abortButton.disabled = true;
-    //   sendFileButton.disabled = false;
-    // }
-
-
-
-    async function gotLocalDescription(desc, id) {
-      await localConnection.setLocalDescription(desc);
-      ws.send("/offer "+ id + " " + JSON.stringify(desc.localDescription))
-      // ---------------------------------(here is cretaed desc)
-    }
-
-    async function gotRemoteDescription(desc) {
-      await localConnection.setLocalDescription(desc);
-      console.log(`Answer from remoteConnection\n ${desc.sdp}`);
-      await localConnection.setRemoteDescription(desc);
-    }
-
-    // function receiveChannelCallback(event) {
-    //   console.log('Receive Channel Callback');
-    //   receiveChannel = event.channel;
-    //   receiveChannel.binaryType = 'arraybuffer';
-    //   receiveChannel.onmessage = onReceiveMessageCallback;
-    //   receiveChannel.onopen = onReceiveChannelStateChange;
-    //   receiveChannel.onclose = onReceiveChannelStateChange;
-
-    //   receivedSize = 0;
-    //   bitrateMax = 0;
-    //   downloadAnchor.textContent = '';
-    //   downloadAnchor.removeAttribute('download');
-    //   if (downloadAnchor.href) {
-    //     URL.revokeObjectURL(downloadAnchor.href);
-    //     downloadAnchor.removeAttribute('href');
-    //   }
-    // }
-
-    // function onReceiveMessageCallback(event) {
-    //   receiveBuffer.push(event.data);
-    //   receivedSize += event.data.byteLength;
-    //   receiveProgress.value = receivedSize;
-
-    //   // we are assuming that our signaling protocol told
-    //   // about the expected file size (and name, hash, etc).
-    //   const file = fileInput.files[0];
-    //   if (receivedSize === file.size) {
-    //     const received = new Blob(receiveBuffer);
-    //     receiveBuffer = [];
-
-    //     downloadAnchor.href = URL.createObjectURL(received);
-    //     downloadAnchor.download = file.name;
-    //     downloadAnchor.textContent =
-    //       `Click to download '${file.name}' (${file.size} bytes)`;
-    //     downloadAnchor.style.display = 'block';
-
-    //     const bitrate = Math.round(receivedSize * 8 /
-    //       ((new Date()).getTime() - timestampStart));
-    //     bitrateDiv.innerHTML =
-    //       `<strong>Average Bitrate:</strong> ${bitrate} kbits/sec (max: ${bitrateMax} kbits/sec)`;
-
-    //     if (statsInterval) {
-    //       clearInterval(statsInterval);
-    //       statsInterval = null;
-    //     }
-
-    //     closeDataChannels();
-    //   }
-    // }
-
-    function onSendChannelStateChange() {
-      if (sendChannel) {
-        const {
-          readyState
-        } = sendChannel;
-        if (readyState === 'open') {
-          sendData();
-        }
-      }
-    }
-
-    function onError(error) {
-      if (sendChannel) {
-        console.error('Error in sendChannel:', error);
-        return;
-      }
-      console.log('Error in sendChannel which is already closed:', error);
-    }
-
-    async function onReceiveChannelStateChange() {
-      if (receiveChannel) {
-        const readyState = receiveChannel.readyState;
-        if (readyState === 'open') {
-          timestampStart = (new Date()).getTime();
-          timestampPrev = timestampStart;
-          statsInterval = setInterval(displayStats, 500);
-          await displayStats();
-        }
-      }
-    }
-
-    // // display bitrate statistics.
-    // async function displayStats() {
-    //   if (localConnection && localConnection.iceConnectionState === 'connected') {
-    //     const stats = await localConnection.getStats();
-    //     let activeCandidatePair;
-    //     stats.forEach(report => {
-    //       if (report.type === 'transport') {
-    //         activeCandidatePair = stats.get(report.selectedCandidatePairId);
-    //       }
-    //     });
-    //     if (activeCandidatePair) {
-    //       if (timestampPrev === activeCandidatePair.timestamp) {
-    //         return;
-    //       }
-    //       // calculate current bitrate
-    //       const bytesNow = activeCandidatePair.bytesReceived;
-    //       const bitrate = Math.round((bytesNow - bytesPrev) * 8 /
-    //         (activeCandidatePair.timestamp - timestampPrev));
-    //       bitrateDiv.innerHTML = `<strong>Current Bitrate:</strong> ${bitrate} kbits/sec`;
-    //       timestampPrev = activeCandidatePair.timestamp;
-    //       bytesPrev = bytesNow;
-    //       if (bitrate > bitrateMax) {
-    //         bitrateMax = bitrate;
-    //       }
-    //     }
-    //   }
-    // }
-  </script>
-</body>
-
-</html>
+	</body></html>

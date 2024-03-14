@@ -1,10 +1,9 @@
 use std::time::{Duration, Instant};
 
 use actix::prelude::*;
-use actix_web::body::None;
-use actix_web_actors::ws::{self, WebsocketContext};
+use actix_web_actors::ws::{self};
 
-use crate::server::{self, ChatServer};
+use crate::server::{self};
 
 /// How often heartbeat pings are sent
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
@@ -37,7 +36,7 @@ impl WsChatSession {
             // check client heartbeats
             if Instant::now().duration_since(act.hb) > CLIENT_TIMEOUT {
                 // heartbeat timed out
-                println!("Websocket Client heartbeat failed, disconnecting!");
+                //println!("Websocket Client heartbeat failed, disconnecting!");
 
                 // notify chat server
                 act.addr.do_send(server::Disconnect { id: act.id, room: act.room.clone() });
@@ -51,29 +50,6 @@ impl WsChatSession {
 
             ctx.ping(b"");
         });
-    }
-
-    pub fn commandHandler<T>(
-        &mut self, 
-        msg: T, 
-        match_res: &'static fn(
-            Result<<T as actix::Message>::Result, MailboxError>, 
-            &mut WebsocketContext<WsChatSession>)     
-        -> None, 
-        ctx: &mut ws::WebsocketContext<Self>
-    )
-    where
-        ChatServer: actix::Handler<T>,
-        T: Message + Send + 'static,
-        T::Result: Send,
-    {
-        self.addr.send(msg)
-        .into_actor(self)
-        .then(|res, _, ctx| {
-            match_res(res, ctx);
-            fut::ready(())
-        })
-        .wait(ctx)
     }
 }
 
@@ -150,7 +126,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                 self.hb = Instant::now();
             }
             ws::Message::Text(text) => {
-                println!("WEBSOCKET MESSAGE: {text:?}");
+                //println!("WEBSOCKET MESSAGE: {text:?}");
                 let m = text.trim();
                 // we check for /sss type of messages
                 if m.starts_with('/') {
@@ -178,6 +154,9 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                             // .wait(ctx) pauses all events in context,
                             // so actor wont receive any new messages until it get list
                             // of rooms back
+                        }
+                        "/ping" => {
+                            ctx.text("/pong".to_string());
                         }
                         "/invite" => {
                             if v.len() != 2 {
